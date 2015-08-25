@@ -1,0 +1,15 @@
+Source: python-linz-pyaxis
+Maintainer: Chris Crook <ccrook@linz.govt.nz>
+Section: python
+X-Python-Version: >= 2.6
+Priority: optional
+Build-Depends: python-setuptools (>= 0.6b3), python-all (>= 2.6.6-3), debhelper (>= 7.4.3)
+Standards-Version: 3.9.1
+
+Package: python-linz-pyaxis
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Python LINZ local tie survey adjustment
+ Provides the pyaxis function for adjusting local tie surey data.
+ .
+ This package installs the script for Python 2.
