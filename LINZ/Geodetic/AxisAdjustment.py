@@ -1,3 +1,10 @@
+#!/usr/bin/python
+
+# Imports to support python 3 compatibility
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 
 import sys
 import re
@@ -29,60 +36,60 @@ class AxisOptions( Options ):
         self.debugTargetAdjustmentTotalChange=False
         Options.__init__( self, config_file )
         
-    def loadConfig( self, config ):
-        Options.loadConfig( self, config )
-        self.adjustENU=False
-        tgtpattern=config.get('axis_target_re',None)
-        if tgtpattern is not None:
-            self.axisTargetRe=re.compile(tgtpattern)
-        self.axisMaxIterations=int(config.get('axis_max_iterations',self.axisMaxIterations))
-        self.axisConvergence=float(config.get('axis_convergence',self.axisConvergence))
-        self.skipPhase1Adjustment=self.getbool(config,'skip_phase1_adjustment',self.skipPhase1Adjustment)
-        antennae=config.get('antenna_arcs',None)
-        if antennae is not None:
-            for antenna in antennae.split("\n"):
-                parts=antenna.split()
-                if len(parts) > 0:
-                    antname=parts.pop(0)
-                    self.antennaeArcs[antname]=parts
-        self.sinexOutputFile=config.get('sinex_output_file',self.sinexOutputFile)
-        siteids=config.get('sinex_site_id',None)
-        if siteids is not None:
-            for siteid in siteids.split("\n"):
-                parts=siteid.split(None,4)
-                if len(parts) != 5:
-                    raise RuntimeError('Invalid sinex_site_id: '+siteid)
-                mark,id,code,monument,description=parts
-                self.sinexIds[mark]={'id':id,'code':code,'monument':monument,'description':description}
-        sinexheaders=config.get('sinex_header_info',None)
-        if sinexheaders is not None:
-            for header in sinexheaders.split("\n"):
-                parts=header.split(None,1)
-                if len(parts) != 2:
-                    raise RuntimeError('Invalid sinex_header_info: '+header)
-                self.sinexHeaders[parts[0].upper()]=parts[1]
-        self.targetAdjustmentCsv=config.get('target_adjustment_csv_file',self.targetAdjustmentCsv)
-        self.writeTargetAdjustmentIterations=self.getbool(config,'write_target_adjustment_iterations',self.writeTargetAdjustmentIterations)
-        self.debugTargetAdjustmentTotalChange=self.getbool(config,'debug_target_adjustment_change',self.debugTargetAdjustmentTotalChange)
+    def set( self, item, value ):
+        if item == 'axis_target_re':
+            self.axisTargetRe=re.compile(value)
+        elif item == 'axis_max_iterations':
+            self.axisMaxIterations=int(value)
+        elif item == 'axis_convergence':
+            self.axisConvergence=float(value)
+        elif item == 'skip_phase1_adjustment':
+            self.skipPhase1Adjustment=self.getbool(value)
+        elif item == 'antenna_arcs':
+            parts=value.split()
+            if len(parts) > 0:
+                antname=parts.pop(0)
+                self.antennaeArcs[antname]=parts
+        elif item == 'sinex_output_file':
+            self.sinexOutputFile=value
+        elif item == 'sinex_site_id':
+            parts=value.split(None,4)
+            if len(parts) != 5:
+                raise RuntimeError('Invalid sinex_site_id: '+value)
+            mark,id,code,monument,description=parts
+            self.sinexIds[mark]={'id':id,'code':code,'monument':monument,'description':description}
+        elif item == 'sinex_header_info':
+            parts=value.split(None,1)
+            if len(parts) != 2:
+                raise RuntimeError('Invalid sinex_header_info: '+value)
+            self.sinexHeaders[parts[0].upper()]=parts[1]
+        elif item == 'target_adjustment_csv_file':
+            self.targetAdjustmentCsv=value
+        elif item == 'write_target_adjustment_iterations':
+            self.writeTargetAdjustmentIterations=self.getbool(value)
+        elif item == 'debug_target_adjustment_change':
+            self.debugTargetAdjustmentTotalChange=self.getbool(value)
 
-        calibrations=config.get('target_calibration',None)
-        if calibrations is not None:
-            for calibration in calibrations.split("\n"):
-                parts=calibration.lower().split()
-                if len(parts) < 2:
-                    raise RuntimeError("Invalid target_calibration: "+calibration)
-                target=parts.pop(0)
-                calculate=False
-                correction=0.0
-                if parts[0] == 'calculate':
-                    calculate=True
-                    parts.pop(0)
-                    if len(parts) == 1 and re.match(r'[+-]?\d+(\.\d+)$',parts[0]):
-                        correction=float(parts[0])
-                    elif len(parts) > 0 or not calculate:
-                        raise RuntimeError("Invalid target_calibration: "+calibration)
-                self.targetCalibrations[target]=TargetCalibration(target,correction,calculate)
-
+        elif item == 'target_calibration':
+            parts=value.lower().split()
+            if len(parts) < 2:
+                raise RuntimeError("Invalid target_calibration: "+value)
+            target=parts.pop(0)
+            calculate=False
+            correction=0.0
+            if parts[0] == 'calculate':
+                calculate=True
+                parts.pop(0)
+                if len(parts) == 1 and re.match(r'[+-]?\d+(\.\d+)$',parts[0]):
+                    correction=float(parts[0])
+                elif len(parts) > 0 or not calculate:
+                    raise RuntimeError("Invalid target_calibration: "+value)
+            self.targetCalibrations[target]=TargetCalibration(target,correction,calculate)
+        else:
+            Options.set(self,item,value)
+        # Override adjustENU value
+        if self.adjustENU:
+            raise RuntimeError("adjust_enu is not a valid option in an axis adjustment")
 
 # Define parameters of antenna axes, antenna orientation (rotation about axis),
 # an target position along the axis.  These are assigned to targets, arcs, etc, 
@@ -1334,14 +1341,17 @@ class AxisAdjustment( Adjustment ):
 
     softwareName='pyaxis software version 1.0: Land Information New Zealand'
 
-    def __init__( self, options=AxisOptions(), **kwds ):
-        Adjustment.__init__(self,options=options,**kwds )
+    def __init__( self, **kwds ):
+        Adjustment.__init__(self,**kwds )
         self.axesDefined=False
         self.antennae={}
         self.targetMarks={}
         self.targetCalibrations={}
         self.antennaNprm=0
         self.phase=AxisAdjustment.NETWORK_ADJUSTMENT
+
+    def defaultOptions( self ):
+        return AxisOptions()
         
     def defineAntennae( self ):
         if self.axesDefined:
