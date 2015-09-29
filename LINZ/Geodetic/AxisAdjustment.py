@@ -11,85 +11,12 @@ import re
 import math
 import numpy as np
 from numpy import linalg
-from LINZ.Geodetic.Adjustment import Adjustment, Options
-from LINZ.Geodetic.Adjustment import main as adjustmentMain
+from LINZ.Geodetic.Adjustment import Adjustment, Options, Plugin
 from LINZ.Geodetic.Ellipsoid import GRS80
 from LINZ.Geodetic import Sinex
 
 def veclen(x):
     return math.sqrt(np.vdot(x,x))
-
-class AxisOptions( Options ):
-
-    def __init__( self, config_file=None ):
-        self.axisTargetRe=None
-        self.axisMaxIterations=10
-        self.axisConvergence=0.00001
-        self.skipPhase1Adjustment=False
-        self.antennaeArcs={}
-        self.sinexIds={}
-        self.sinexHeaders={}
-        self.sinexOutputFile=None
-        self.targetAdjustmentCsv=None
-        self.targetCalibrations={}
-        self.writeTargetAdjustmentIterations=False
-        self.debugTargetAdjustmentTotalChange=False
-        Options.__init__( self, config_file )
-        
-    def set( self, item, value ):
-        if item == 'axis_target_re':
-            self.axisTargetRe=re.compile(value)
-        elif item == 'axis_max_iterations':
-            self.axisMaxIterations=int(value)
-        elif item == 'axis_convergence':
-            self.axisConvergence=float(value)
-        elif item == 'skip_phase1_adjustment':
-            self.skipPhase1Adjustment=self.getbool(value)
-        elif item == 'antenna_arcs':
-            parts=value.split()
-            if len(parts) > 0:
-                antname=parts.pop(0)
-                self.antennaeArcs[antname]=parts
-        elif item == 'sinex_output_file':
-            self.sinexOutputFile=value
-        elif item == 'sinex_site_id':
-            parts=value.split(None,4)
-            if len(parts) != 5:
-                raise RuntimeError('Invalid sinex_site_id: '+value)
-            mark,id,code,monument,description=parts
-            self.sinexIds[mark]={'id':id,'code':code,'monument':monument,'description':description}
-        elif item == 'sinex_header_info':
-            parts=value.split(None,1)
-            if len(parts) != 2:
-                raise RuntimeError('Invalid sinex_header_info: '+value)
-            self.sinexHeaders[parts[0].upper()]=parts[1]
-        elif item == 'target_adjustment_csv_file':
-            self.targetAdjustmentCsv=value
-        elif item == 'write_target_adjustment_iterations':
-            self.writeTargetAdjustmentIterations=self.getbool(value)
-        elif item == 'debug_target_adjustment_change':
-            self.debugTargetAdjustmentTotalChange=self.getbool(value)
-
-        elif item == 'target_calibration':
-            parts=value.lower().split()
-            if len(parts) < 2:
-                raise RuntimeError("Invalid target_calibration: "+value)
-            target=parts.pop(0)
-            calculate=False
-            correction=0.0
-            if parts[0] == 'calculate':
-                calculate=True
-                parts.pop(0)
-                if len(parts) == 1 and re.match(r'[+-]?\d+(\.\d+)$',parts[0]):
-                    correction=float(parts[0])
-                elif len(parts) > 0 or not calculate:
-                    raise RuntimeError("Invalid target_calibration: "+value)
-            self.targetCalibrations[target]=TargetCalibration(target,correction,calculate)
-        else:
-            Options.set(self,item,value)
-        # Override adjustENU value
-        if self.adjustENU:
-            raise RuntimeError("adjust_enu is not a valid option in an axis adjustment")
 
 # Define parameters of antenna axes, antenna orientation (rotation about axis),
 # an target position along the axis.  These are assigned to targets, arcs, etc, 
@@ -1045,7 +972,7 @@ class Antenna( object ):
         return targetMark
 
     def setup( self ):
-        self.write("Setting up axes for antenna {0}\n".format(self.name))
+        self.write("\nSetting up axes for antenna {0}\n".format(self.name))
         # Derive the rotation axes and targets for each arc
         for arcName in sorted(self.arcs.keys()):
             self.write("\nInitiallizing arc {0}\n".format(arcName))
@@ -1253,7 +1180,7 @@ class Antenna( object ):
         '''
         return self.azimuthAxisParams.xyzCoordinates()
 
-    def report( self ):
+    def report( self, adjustment ):
         '''
         Report on antenna.  First report on antenna configuration.  This
         is defined by the centre and orientation of the azimuth axis, and the
@@ -1266,7 +1193,7 @@ class Antenna( object ):
         centre=azimuthParams.centre
         uvw=azimuthParams.axes
 
-        obseq=np.zeros((7,self.adjustment.nparam))
+        obseq=np.zeros((7,adjustment.nparam))
         for i in range(3):
             obseq[i,azimuthParams.params[i+2]]=1.0
 
@@ -1294,9 +1221,9 @@ class Antenna( object ):
         obseq[5,elevationParams.offsetParam]=1.0
         obseq[6,elevationParams.angleParam]=3600.0
 
-        prmcovar=self.adjustment.covariance()
+        prmcovar=adjustment.covariance()
         covar=obseq.dot(prmcovar.dot(obseq.T))
-        seu=self.adjustment.seu
+        seu=adjustment.seu
         covar *= seu*seu
         stderr=np.sqrt(covar.diagonal())
 
@@ -1333,26 +1260,104 @@ class Antenna( object ):
             self.write("\n")
         self.write("\n")
 
-class AxisAdjustment( Adjustment ):
+class AxisAdjustment( Plugin ):
 
+    # Phases of adjustment
     NETWORK_ADJUSTMENT=1
     ANTENNA_ESTIMATION=2
     FINAL_ADJUSTMENT=3
 
+    # Used for SINEX header
     softwareName='pyaxis software version 1.0: Land Information New Zealand'
 
-    def __init__( self, **kwds ):
-        Adjustment.__init__(self,**kwds )
+    def initPlugin( self ):
         self.axesDefined=False
         self.antennae={}
         self.targetMarks={}
         self.targetCalibrations={}
         self.antennaNprm=0
-        self.phase=AxisAdjustment.NETWORK_ADJUSTMENT
+        self.phase=self.NETWORK_ADJUSTMENT
 
-    def defaultOptions( self ):
-        return AxisOptions()
+    def pluginOptions( self ):
+        return dict(
+            axisTargetRe=None,
+            axisMaxIterations=10,
+            axisConvergence=0.00001,
+            skipPhase1Adjustment=False,
+            antennaeArcs={},
+            sinexIds={},
+            sinexHeaders={},
+            sinexOutputFile=None,
+            targetAdjustmentCsv=None,
+            targetCalibrations={},
+            writeTargetAdjustmentIterations=False,
+            debugTargetAdjustmentTotalChange=False
+        )
+
+    def write( self, *params, **opts ):
+        self.adjustment.write( *params, **opts )
+
+    def stations( self ):
+        return self.adjustment.stations
         
+    def setConfigOption( self, item, value ):
+        options=self.options
+        if item == 'axis_target_re':
+            options.axisTargetRe=re.compile(value)
+        elif item == 'axis_max_iterations':
+            options.axisMaxIterations=int(value)
+        elif item == 'axis_convergence':
+            options.axisConvergence=float(value)
+        elif item == 'skip_phase1_adjustment':
+            options.skipPhase1Adjustment=options.boolOption(value)
+        elif item == 'antenna_arcs':
+            parts=value.split()
+            if len(parts) > 0:
+                antname=parts.pop(0)
+                options.antennaeArcs[antname]=parts
+        elif item == 'sinex_output_file':
+            options.sinexOutputFile=value
+        elif item == 'sinex_site_id':
+            parts=value.split(None,4)
+            if len(parts) != 5:
+                raise RuntimeError('Invalid sinex_site_id: '+value)
+            mark,id,code,monument,description=parts
+            options.sinexIds[mark]={'id':id,'code':code,'monument':monument,'description':description}
+        elif item == 'sinex_header_info':
+            parts=value.split(None,1)
+            if len(parts) != 2:
+                raise RuntimeError('Invalid sinex_header_info: '+value)
+            options.sinexHeaders[parts[0].upper()]=parts[1]
+        elif item == 'target_adjustment_csv_file':
+            options.targetAdjustmentCsv=value
+        elif item == 'write_target_adjustment_iterations':
+            options.writeTargetAdjustmentIterations=options.boolOption(value)
+        elif item == 'debug_target_adjustment_change':
+            options.debugTargetAdjustmentTotalChange=options.boolOption(value)
+
+        elif item == 'target_calibration':
+            parts=value.lower().split()
+            if len(parts) < 2:
+                raise RuntimeError("Invalid target_calibration: "+value)
+            target=parts.pop(0)
+            calculate=False
+            correction=0.0
+            if parts[0] == 'calculate':
+                calculate=True
+                parts.pop(0)
+                if len(parts) == 1 and re.match(r'[+-]?\d+(\.\d+)$',parts[0]):
+                    correction=float(parts[0])
+                elif len(parts) > 0 or not calculate:
+                    raise RuntimeError("Invalid target_calibration: "+value)
+            options.targetCalibrations[target]=TargetCalibration(target,correction,calculate)
+        else:
+            return False
+        return True
+    
+#        # Override adjustENU value
+#        if self.adjustENU:
+#            raise RuntimeError("adjust_enu is not a valid option in an axis adjustment")
+
     def defineAntennae( self ):
         if self.axesDefined:
             return
@@ -1367,7 +1372,7 @@ class AxisAdjustment( Adjustment ):
         # Assign marks to antennae targets
 
         targets=set()
-        for s in self.stations.stations():
+        for s in self.stations().stations():
             code=s.code()
             m=tgtre.match(code)
             if m is not None:
@@ -1398,16 +1403,29 @@ class AxisAdjustment( Adjustment ):
     def setupParameters( self ):
         '''
         Do nothing unless this is the final phase of the adjustment.
-        In the final phase add the antenna parameters to the adjustment and
-        set up the mapping from parameters to station coordinates. 
+        In the final phase add the antenna parameters and target
+        calibration parameters to the adjustment
         '''
         if self.phase==self.FINAL_ADJUSTMENT:
-            mapping=self.coordParamMapping
             for a in sorted(self.antennae.keys()):
                 antenna=self.antennae[a]
-                antenna.initParams(self)
+                antenna.initParams(self.adjustment)
+            
+            for calibration in self.targetCalibrations.values():
+                calibration.initParams(self.adjustment)
+
+    def setupStationCoordMapping( self ):
+        '''
+        Do nothing unless this is the final phase of the adjustment.
+        In the final phase set up the mapping from parameters to station coordinates. 
+        '''
+        adjustment=self.adjustment
+        if self.phase==self.FINAL_ADJUSTMENT:
+            mapping=adjustment.coordParamMapping
+            for a in sorted(self.antennae.keys()):
+                antenna=self.antennae[a]
                 for m in antenna.targetMarks:
-                    obseq=np.zeros((3,self.nparam))
+                    obseq=np.zeros((3,adjustment.nparam))
                     xyz=m.calculateXyz( obseq )
                     # Reset mark coordinate to value calculated from parameters
                     m.mark.setXYZ(xyz)
@@ -1415,15 +1433,8 @@ class AxisAdjustment( Adjustment ):
                     prmnos=np.where((obseq != 0).any(axis=0))[0]
                     obsnonzero=obseq[:,prmnos].T
                     mapping[m.mark.code()]=(prmnos,obsnonzero,False)
-            
-            for calibration in self.targetCalibrations.values():
-                calibration.initParams(self)
 
-        # Set up mapping for other stations
-        Adjustment.setupParameters( self )
-
-    def observationEquation( self, obs ):
-        obseq=Adjustment.observationEquation( self, obs )
+    def updateObservationEquation( self, obs, obseq ):
         if obs.obstype.code == 'SD':
             for i,o in enumerate(obs.obsvalues):
                 target=self.targetMarks.get(o.trgtstn,None)
@@ -1432,7 +1443,6 @@ class AxisAdjustment( Adjustment ):
                     obseq.obsres += calibration.correction
                     if self.phase==self.FINAL_ADJUSTMENT and calibration.prmno is not None:
                         obseq.obseq[i,calibration.prmno]=-1.0
-        return obseq
 
     def writeHeader( self, header ):
         self.write("\n"+("="*70)+"\n")
@@ -1441,21 +1451,21 @@ class AxisAdjustment( Adjustment ):
 
     def phase1( self ):
         self.writeHeader("Phase 1: Unconstrained network adjustment\n")
-        self.phase=AxisAdjustment.NETWORK_ADJUSTMENT
-        Adjustment.run(self)
-        self.writeSummaryStats()
-        self.writeResidualSummary()
+        self.phase=self.NETWORK_ADJUSTMENT
+        self.adjustment.calculateSolution()
+        self.adjustment.writeSummaryStats()
+        self.adjustment.writeResidualSummary()
 
     def phase2( self ):
         self.writeHeader("Phase 2: Antenna initial parameter estimation\n")
-        self.phase=AxisAdjustment.ANTENNA_ESTIMATION
+        self.phase=self.ANTENNA_ESTIMATION
         self.defineAntennae()
             
     def phase3( self ):
         self.saveUnconstrainedCoords()
         self.writeHeader("Phase 3: Final constrained adjustment\n")
-        self.phase=AxisAdjustment.FINAL_ADJUSTMENT
-        Adjustment.run(self)
+        self.phase=self.FINAL_ADJUSTMENT
+        self.adjustment.calculateSolution()
 
     def writeSinex( self ):
         if not self.options.sinexOutputFile:
@@ -1465,21 +1475,23 @@ class AxisAdjustment( Adjustment ):
         if len(marks) == 0:
             return
         coords=[]
+        adjustment=self.adjustment
+        mapping=adjustment.coordParamMapping
         for m in marks:
             if m in self.antennae:
                 coords.append(self.antennae[m].ivpCoordinates())
-            elif m in self.coordParamMapping:
-                prms,obseq,update=self.coordParamMapping[m]
+            elif m in mapping:
+                prms,obseq,update=mapping[m]
                 if obseq.shape != (3,3) or np.any(obseq != np.identity(3)):
                     raise RuntimeError("Sinex mark "+m+" XYZ coordinates are not adjustment parameters")
-                xyz=self.stations.get(m).xyz()
+                xyz=self.stations().get(m).xyz()
                 coords.append((xyz,list(prms)))
             else:
                 raise RuntimeError("Sinex mark "+m+" is not defined in the adjustment")
 
         startdate=None
         enddate=None
-        for o in self.observations:
+        for o in adjustment.observations:
             if o.obsdate is not None:
                 if startdate is None:
                     startdate=o.obsdate
@@ -1490,18 +1502,18 @@ class AxisAdjustment( Adjustment ):
                     enddate=o.obsdate
         
         with Sinex.Writer( self.options.sinexOutputFile ) as snx:
-            snx.addFileInfo(software=AxisAdjustment.softwareName)
+            snx.addFileInfo(software=self.softwareName)
             snx.addFileInfo( **self.options.sinexHeaders )
             if startdate is not None:
                 snx.setObsDateRange(startdate,enddate)
-            snx.setSolutionStatistics(self.seu**2,self.ssr,self.nobs,self.nparam)
+            snx.setSolutionStatistics(adjustment.seu**2,adjustment.ssr,adjustment.nobs,adjustment.nparam)
 
             for m,c in zip(marks,coords):
                 snxid=sinexIds[m]
                 snx.addMark(m,**snxid)
                 snx.addSolution(m,c[0],c[1])
 
-            snx.setCovariance( self.covariance(), self.seu**2 )
+            snx.setCovariance( adjustment.covariance(), adjustment.seu**2 )
 
     def saveUnconstrainedCoords( self ):
         self.unconstrainedCoords={}
@@ -1509,7 +1521,10 @@ class AxisAdjustment( Adjustment ):
             for tm in a.targetMarks:
                 self.unconstrainedCoords[tm.mark.code()]=np.array(tm.mark.xyz())
 
-    def run( self ):
+    def calculateSolution( self ):
+        '''
+        Replace adjustment calculate solution function with three phase calculation
+        '''
         try:
             if not self.options.skipPhase1Adjustment:
                 self.phase1()
@@ -1522,8 +1537,6 @@ class AxisAdjustment( Adjustment ):
             sys.exit()
     
     def report( self ):
-        Adjustment.report(self)
-
         listCalibrations=False
         for c in self.targetCalibrations.values():
             if c.calculate or c.correction != 0.0:
@@ -1534,12 +1547,12 @@ class AxisAdjustment( Adjustment ):
 
         for a in sorted(self.antennae.keys()):
             self.writeHeader("Antenna "+a+" report")
-            self.antennae[a].report()
+            self.antennae[a].report(self.adjustment)
 
     def listTargetCalibrations( self ):
         self.writeHeader("Target calibrations")
-        covariance=self.covariance()
-        seu=self.seu
+        covariance=self.adjustment.covariance()
+        seu=self.adjustment.seu
         self.write("\nTarget  calibration  error\n")
         for target in sorted(self.targetCalibrations):
             calibration=self.targetCalibrations[target]
@@ -1571,12 +1584,14 @@ class AxisAdjustment( Adjustment ):
                         code,a,axis,m.target.name,m.arc.name,denu[0],denu[1],denu[2]))
 
     def writeOutputFiles( self ):
-        Adjustment.writeOutputFiles( self )
         self.writeSinex()
         self.writeTargetAdjustments()
 
 def main():
-    adjustmentMain(AxisAdjustment)
+    from LINZ.Geodetic.LocalGeoidModelPlugin import LocalGeoidModelPlugin
+    from LINZ.Geodetic.StationLocatorPlugin import StationLocatorPlugin
+    plugins=[LocalGeoidModelPlugin,StationLocatorPlugin,AxisAdjustment]
+    Adjustment.main(plugins=plugins)
 
 if __name__=='__main__':
     main()
