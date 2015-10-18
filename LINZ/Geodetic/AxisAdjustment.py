@@ -70,6 +70,7 @@ class AngleParam( object ):
     def updateAngle( self, params, paramcvr=None ):
         if self.angleParam is not None:
             self.setAngle(self.angle+params[self.angleParam])
+        return True
 
     def apply( self, uvw, obseq=None ):
         '''
@@ -172,6 +173,7 @@ class AxisParams( object ):
             self.axes=np.array(((ca,0.0,-sa),(0.0,1.0,0.0),(sa,0.0,ca))).dot(self.axes)
         if self.params[2] is not None:
             self.centre += params[[self.params[2:5]]]
+        return True
 
     @staticmethod
     def nearestPoint( axis1, axis2 ):
@@ -237,6 +239,7 @@ class ElevationAxisParams( AngleParam ):
         '''
         if self.offsetParam is not None:
             self.offset += params[self.offsetParam]
+        return True
 
     def apply( self, uvw, obseq=None):
         '''
@@ -332,6 +335,7 @@ class TargetParams( AngleParam ):
             self.offset += params[self.tgtParams[0]]
         if self.tgtParams[1] is not None:
             self.radius += params[self.tgtParams[1]]
+        return True
 
     def getXYZ( self, obseq=None):
         '''
@@ -368,6 +372,7 @@ class TargetCalibration( object ):
     def update( self, params, paramcvr=None ):
         if self.prmno is not None:
             self.correction += params[self.prmno]
+        return True
 
 class TargetMark( object ):
     '''
