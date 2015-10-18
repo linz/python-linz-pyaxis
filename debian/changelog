@@ -1,3 +1,10 @@
+python-linz-pyaxis (1.1.0-1) trusty; urgency=medium
+
+  * Reimplemented as plugin
+  * Fixing parameter update to return (True) converged status
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Mon, 19 Oct 2015 10:11:38 +1300
+
 python-linz-pyaxis (1.0.1-1) trusty; urgency=medium
 
   * Fixing options handling for change to Adjustment.py
