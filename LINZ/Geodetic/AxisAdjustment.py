@@ -1595,7 +1595,8 @@ class AxisAdjustment( Plugin ):
 def main():
     from LINZ.Geodetic.LocalGeoidModelPlugin import LocalGeoidModelPlugin
     from LINZ.Geodetic.StationLocatorPlugin import StationLocatorPlugin
-    plugins=[LocalGeoidModelPlugin,StationLocatorPlugin,AxisAdjustment]
+    from LINZ.Geodetic.SetupHeightPlugin import SetupHeightPlugin
+    plugins=[LocalGeoidModelPlugin,StationLocatorPlugin,SetupHeightPlugin,AxisAdjustment]
     Adjustment.main(plugins=plugins)
 
 if __name__=='__main__':
