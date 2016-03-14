@@ -516,6 +516,8 @@ class Target( object ):
     def setup( self ):
         self.write(' Setting up target {0}\n'.format(self.name))
         self.write('   Target has {0} observations\n'.format(len(self.marks)))
+        if len(self.marks) < 3:
+            raise RuntimeError('Not enough observations to calculate target '+self.name)
 
         # Sort the targets by the angle code
 
