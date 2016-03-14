@@ -1,3 +1,10 @@
+python-linz-pyaxis (1.2.0-1) trusty; urgency=medium
+
+  * Adding SetupHeightPlugin to pyaxis
+  * Handling too few observations of arc
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Tue, 15 Mar 2016 11:38:34 +1300
+
 python-linz-pyaxis (1.1.0-1) trusty; urgency=medium
 
   * Reimplemented as plugin
