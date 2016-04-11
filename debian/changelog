@@ -1,3 +1,10 @@
+python-linz-pyaxis (1.2.0-2) trusty; urgency=medium
+
+  * Resetting debian/rules executable
+  * Adding more information to README
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Mon, 11 Apr 2016 12:13:51 +1200
+
 python-linz-pyaxis (1.2.0-1) trusty; urgency=medium
 
   * Adding SetupHeightPlugin to pyaxis
