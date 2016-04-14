@@ -1224,6 +1224,9 @@ class Antenna( object ):
 
         offset=elevationParams.offset
         misalignment=elevationParams.angle*3600
+        if offset < 0:
+            offset=-offset
+            misalignment=-misalignment
 
         obseq[5,elevationParams.offsetParam]=1.0
         obseq[6,elevationParams.angleParam]=3600.0
