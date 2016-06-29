@@ -12,6 +12,7 @@ import math
 import numpy as np
 from numpy import linalg
 from LINZ.Geodetic.Adjustment import Adjustment, Options, Plugin
+from LINZ.Geodetic.Station import Station
 from LINZ.Geodetic.Ellipsoid import GRS80
 from LINZ.Geodetic import Sinex
 
@@ -129,6 +130,7 @@ class AxisParams( object ):
             self.params[4]=adjustment.addParameter(self.name+' centre Z')
         if calcAlignment or calcCentre:
             adjustment.addParameterUpdate( self.updateAxis )
+
 
     def xyzCoordinates( self ):
         return self.centre,self.params[2:5]
@@ -1150,6 +1152,18 @@ class Antenna( object ):
         solved=tmadjustment.solve()
 
         self.axesDefined=True
+
+        # Add the antenna IVP to the network as a station
+
+        station=self.adjustment.stations().get( self.name )
+        xyz=self.azimuthAxisParams.xyzCoordinates()[0]
+        if station is None:
+            self.adjustment.stations().addStation(
+                Station( self.name, name=self.name+' IVP',xyz=xyz)
+                )
+        else:
+            station.setXYZ(xyz)
+
         return solved
 
     def initParams( self, adjustment, calculate=True ):
@@ -1278,7 +1292,7 @@ class AxisAdjustment( Plugin ):
     FINAL_ADJUSTMENT=3
 
     # Used for SINEX header
-    softwareName='pyaxis software version 1.0: Land Information New Zealand'
+    softwareName='pyaxis software: Land Information New Zealand'
 
     def initPlugin( self ):
         self.axesDefined=False
@@ -1295,9 +1309,6 @@ class AxisAdjustment( Plugin ):
             axisConvergence=0.00001,
             skipPhase1Adjustment=False,
             antennaeArcs={},
-            sinexIds={},
-            sinexHeaders={},
-            sinexOutputFile=None,
             targetAdjustmentCsv=None,
             targetCalibrations={},
             writeTargetAdjustmentIterations=False,
@@ -1325,19 +1336,6 @@ class AxisAdjustment( Plugin ):
             if len(parts) > 0:
                 antname=parts.pop(0)
                 options.antennaeArcs[antname]=parts
-        elif item == 'sinex_output_file':
-            options.sinexOutputFile=value
-        elif item == 'sinex_site_id':
-            parts=value.split(None,4)
-            if len(parts) != 5:
-                raise RuntimeError('Invalid sinex_site_id: '+value)
-            mark,id,code,monument,description=parts
-            options.sinexIds[mark]={'id':id,'code':code,'monument':monument,'description':description}
-        elif item == 'sinex_header_info':
-            parts=value.split(None,1)
-            if len(parts) != 2:
-                raise RuntimeError('Invalid sinex_header_info: '+value)
-            options.sinexHeaders[parts[0].upper()]=parts[1]
         elif item == 'target_adjustment_csv_file':
             options.targetAdjustmentCsv=value
         elif item == 'write_target_adjustment_iterations':
@@ -1443,6 +1441,10 @@ class AxisAdjustment( Plugin ):
                     prmnos=np.where((obseq != 0).any(axis=0))[0]
                     obsnonzero=obseq[:,prmnos].T
                     mapping[m.mark.code()]=(prmnos,obsnonzero,False)
+                # Add coordinate mapping for antenna IVP so that
+                # parameters can be output in SINEX file
+                prmnos=antenna.ivpCoordinates()[1]
+                mapping[a]=(prmnos,np.identity(3),False)
 
     def updateObservationEquation( self, obs, obseq ):
         if obs.obstype.code == 'SD':
@@ -1470,60 +1472,17 @@ class AxisAdjustment( Plugin ):
         self.writeHeader("Phase 2: Antenna initial parameter estimation\n")
         self.phase=self.ANTENNA_ESTIMATION
         self.defineAntennae()
+
             
     def phase3( self ):
         self.saveUnconstrainedCoords()
         self.writeHeader("Phase 3: Final constrained adjustment\n")
         self.phase=self.FINAL_ADJUSTMENT
         self.adjustment.calculateSolution()
-
-    def writeSinex( self ):
-        if not self.options.sinexOutputFile:
-            return
-        sinexIds=self.options.sinexIds
-        marks=sorted(sinexIds.keys())
-        if len(marks) == 0:
-            return
-        coords=[]
-        adjustment=self.adjustment
-        mapping=adjustment.coordParamMapping
-        for m in marks:
-            if m in self.antennae:
-                coords.append(self.antennae[m].ivpCoordinates())
-            elif m in mapping:
-                prms,obseq,update=mapping[m]
-                if obseq.shape != (3,3) or np.any(obseq != np.identity(3)):
-                    raise RuntimeError("Sinex mark "+m+" XYZ coordinates are not adjustment parameters")
-                xyz=self.stations().get(m).xyz()
-                coords.append((xyz,list(prms)))
-            else:
-                raise RuntimeError("Sinex mark "+m+" is not defined in the adjustment")
-
-        startdate=None
-        enddate=None
-        for o in adjustment.observations:
-            if o.obsdate is not None:
-                if startdate is None:
-                    startdate=o.obsdate
-                    enddate=o.obsdate
-                elif startdate > o.obsdate:
-                    startdate=o.obsdate
-                elif enddate < o.obsdate:
-                    enddate=o.obsdate
-        
-        with Sinex.Writer( self.options.sinexOutputFile ) as snx:
-            snx.addFileInfo(software=self.softwareName)
-            snx.addFileInfo( **self.options.sinexHeaders )
-            if startdate is not None:
-                snx.setObsDateRange(startdate,enddate)
-            snx.setSolutionStatistics(adjustment.seu**2,adjustment.ssr,adjustment.nobs,adjustment.nparam)
-
-            for m,c in zip(marks,coords):
-                snxid=sinexIds[m]
-                snx.addMark(m,**snxid)
-                snx.addSolution(m,c[0],c[1])
-
-            snx.setCovariance( adjustment.covariance(), adjustment.seu**2 )
+        # Update IVP station coordinates
+        for name,a in self.antennae.iteritems():
+            xyz=a.ivpCoordinates()[0]
+            self.stations().get(name).setXYZ(xyz)
 
     def saveUnconstrainedCoords( self ):
         self.unconstrainedCoords={}
@@ -1594,7 +1553,6 @@ class AxisAdjustment( Plugin ):
                         code,a,axis,m.target.name,m.arc.name,denu[0],denu[1],denu[2]))
 
     def writeOutputFiles( self ):
-        self.writeSinex()
         self.writeTargetAdjustments()
 
 def main():
@@ -1602,7 +1560,7 @@ def main():
     from LINZ.Geodetic.StationLocatorPlugin import StationLocatorPlugin
     from LINZ.Geodetic.SetupHeightPlugin import SetupHeightPlugin
     plugins=[LocalGeoidModelPlugin,StationLocatorPlugin,SetupHeightPlugin,AxisAdjustment]
-    Adjustment.main(plugins=plugins)
+    Adjustment.main(plugins=plugins,software=AxisAdjustment.softwareName)
 
 if __name__=='__main__':
     main()

@@ -35,27 +35,6 @@ target_calibration 6 calculate
 skip_phase1_adjustment no
 
 #======================================================================
-# SINEX output file info
-#
-# Reference station information for output SINEX file.  Identifies the id
-# code, monument and descripton of the stations/antenna IVP that will be 
-# included in the final SINEX files.  
-
-sinex_output_file WARK2015LT.SNX
-
-sinex_site_id WARK WARK  A 50243M001 WARKWORTH GNSS CORS
-#sinex_site_id WARK12M 7277  A 50243S001 WARKWORTH AXIS IVP
-sinex_site_id WARK30M 0000  A 50243S001 WARKWORTH AXIS IVP
-
-# Sinex file header info.  Can include agency, description,
-# contact, input, output, sortware, hardware, comment
-
-sinex_header_info agency LNZ
-sinex_header_info description Warkworth 2015 local tie survey
-sinex_header_info output WARK GNSS reference coordinate and antennae IVPs
-sinex_header_info contact crm_geodetic@linz.govt.nz
-
-#======================================================================
 # Other outputs
 
 # target_adjustment_csv_file is a file of offsets of the target mark
