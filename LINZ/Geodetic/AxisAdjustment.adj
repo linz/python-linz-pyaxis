@@ -20,11 +20,13 @@ antenna_arcs WARK12M W X Y Z
 antenna_arcs WARK30M A B C D
 
 # Target prism calibration corrections
+# Note that target calibrations are only calculated in the final phase
+# of the adjustment.
 #  target [calculate]  value
 
-target_calibration 1 calculate
+target_calibration 1 0.0153
 target_calibration 2 calculate
-target_calibration 3 calculate
+target_calibration 3 calculate 0.0182
 target_calibration 4 calculate
 target_calibration 5 calculate
 target_calibration 6 calculate
@@ -38,7 +40,12 @@ skip_phase1_adjustment no
 # Other outputs
 
 # target_adjustment_csv_file is a file of offsets of the target mark
-# coordinates in the constrained adjustment relative to the 
-# unconstrained adjustment
+# coordinates in the constrained adjustment (phase3) relative to the 
+# unconstrained adjustment (phase1)
+#
+# Note that if the the phase3 adjustment changes the target calibration
+# values then this output will not be generated.  This can be fixed by
+# updating the target_calibration initial values above to the same as the
+# calculated values.
 
 target_adjustment_csv_file wark2015lt-tgtoffset.csv

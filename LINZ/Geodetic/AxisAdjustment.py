@@ -362,6 +362,7 @@ class TargetCalibration( object ):
     def __init__( self, name, correction=0.0, calculate=False ):
         self.name=name
         self.correction=correction
+        self.initcorrection=correction
         self.calculate=calculate
         self.prmno=None
 
@@ -443,7 +444,7 @@ class TargetMarkAdjustment( object ):
                 xyz=mark.calculateXyz( mrkobs )
                 obsval[iobs:iobs+3]=mark.mark.xyz()-xyz
 
-            residuals=linalg.norm(obsval.reshape((nobs/3,3)),axis=1)
+            residuals=linalg.norm(obsval.reshape((nobs // 3,3)),axis=1)
             imax=residuals.argmax()
             if writeIterations:
                 self.write("     Iteration {2}: Maximum coordinate residual {0:.5f}m at {1}\n".
@@ -480,7 +481,7 @@ class TargetMarkAdjustment( object ):
             self.write("**** Failed to converge on axis solution after {0} iterations\n".format(iteration))
         else:
             self.write("     Target axis solution converged after {0} iterations\n".format(iteration))
-        residuals=linalg.norm(obsval0.reshape((nobs/3,3)),axis=1)
+        residuals=linalg.norm(obsval0.reshape((nobs // 3,3)),axis=1)
         imax=residuals.argmax()
         self.write("     Maximum coordinate residual {0:.5f}m at {1}\n".
                    format(residuals[imax], marks[imax].mark.code()))
@@ -1380,10 +1381,10 @@ class AxisAdjustment( Plugin ):
         # Assign marks to antennae targets
 
         targets=set()
-        for s in self.stations().stations():
-            code=s.code()
+        for code in self.adjustment.usedStations():
             m=tgtre.match(code)
             if m is not None:
+                s=self.stations.get(code)
                 arcName=m.group('arc')
                 targetName=m.group('target')
                 orientationName=m.group('angle')
@@ -1401,6 +1402,7 @@ class AxisAdjustment( Plugin ):
             self.targetCalibrations[target]=(
                 self.options.targetCalibrations.get(target,TargetCalibration(target)))
  
+    def estimateAntennaeParameters( self ):
         solved=True
         for a in self.antennae.values():
             if not a.setup():
@@ -1462,6 +1464,7 @@ class AxisAdjustment( Plugin ):
         self.write("\n")
 
     def phase1( self ):
+        self.defineAntennae()
         self.writeHeader("Phase 1: Unconstrained network adjustment\n")
         self.phase=self.NETWORK_ADJUSTMENT
         self.adjustment.calculateSolution()
@@ -1471,8 +1474,11 @@ class AxisAdjustment( Plugin ):
     def phase2( self ):
         self.writeHeader("Phase 2: Antenna initial parameter estimation\n")
         self.phase=self.ANTENNA_ESTIMATION
-        self.defineAntennae()
-
+        if len(self.antennae) > 0:
+            self.estimateAntennaeParameters()
+        else:
+            self.write("*** No antennae defined in adjustment\n")
+            self.write("    Check axis_target_re adjustment parameter\n")
             
     def phase3( self ):
         self.saveUnconstrainedCoords()
@@ -1537,6 +1543,22 @@ class AxisAdjustment( Plugin ):
     def writeTargetAdjustments( self ):
         if self.options.targetAdjustmentCsv is None:
             return
+        offsetsvalid=True
+        for target in sorted(self.targetCalibrations):
+            calibration=self.targetCalibrations[target]
+            if abs(calibration.correction-calibration.initcorrection) > 0.0001:
+                if offsetsvalid:
+                    self.write("\n*** Cannot calculate target adjustments in {0}\n"
+                               .format(self.options.targetAdjustmentCsv))
+                    offsetsvalid=False
+                self.write("   Target {0} value {1:.4f} differs from original value by more than 0.0001m\n"
+                          .format(target,calibration.correction))
+                self.write("   Set adjustment option: target_calibration {0} calculate {1:.4f}\n"
+                          .format(target,calibration.correction))
+
+        if not offsetsvalid:
+            return
+
         with open(self.options.targetAdjustmentCsv,'w') as csvf:
             csvf.write("mark,antenna,axis,target,arc,de,dn,du\n")
             for a in sorted(self.antennae):
