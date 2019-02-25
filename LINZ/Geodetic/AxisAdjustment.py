@@ -1384,7 +1384,7 @@ class AxisAdjustment( Plugin ):
         for code in self.adjustment.usedStations():
             m=tgtre.match(code)
             if m is not None:
-                s=self.stations.get(code)
+                s=self.stations().get(code)
                 arcName=m.group('arc')
                 targetName=m.group('target')
                 orientationName=m.group('angle')

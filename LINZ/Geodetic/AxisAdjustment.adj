@@ -4,17 +4,39 @@
 
 use_plugin axis_adjustment
 
-# Regular expression defining target.  Must have match groups
-# named arc, angle, target. (May need to extend to support multiple 
-# telescopes?)
-
-# Note: assume that targets used for azimuth arcs (vertical rotation axis) are
-# not the same as targets used for elevation arcs (horizontal rotation axis) even
-# if they have the same target name
+# Regular expression defining which observations are to the telescope antenna(e).
+#
+# The software assumes that a number of targets are fixed to the antenna, and
+# each is observed as the antenna positioned in a series of orientations (arcs)
+# by rotating about either the primary or secondary axis.  The observation data
+# should have a unique and identifiable name for each target position on each arc.
+# These names are identified by a python regular expression defined by the 
+# axis_target_re parameter.
+#
+# The regular expression should include named capture groups (?P<name>re)
+# with names for 
+#      arc
+#      angle
+#      target
+# where arc series of positions that this observation is part of, angle
+# defines the position on the arc, and target identifies the specific 
+# target attached to the telescope.
+#
+# The series of target positions for each arc are used to identify the 
+# rotation axis of the arc, and the set of horizontal and vertical arc
+# rotation axes identify the primary rotation axis of the telescope, the
+# relationship of it to the secondary rotation axis, and the location of the
+# antenna reference point (ARP).
+#
+# Note: Note that the software assumes that targets used for azimuth arcs 
+# (vertical rotation axis) are not the same as targets used for elevation arcs 
+# (horizontal rotation axis) even if they have the same target name.
 
 axis_target_re (?P<angle>\d\d)(?P<arc>[A-Z])(?P<target>\d)
 
-# Mapping from arc codes to antenna
+# Mapping from arc codes to antenna.  Each line defines the all arcs that apply
+# to a specific antenna.  Each antenna is given a code by which it is identified
+# in the outputs from the software (eg listing file, SINEX output file)
 
 antenna_arcs WARK12M W X Y Z
 antenna_arcs WARK30M A B C D
