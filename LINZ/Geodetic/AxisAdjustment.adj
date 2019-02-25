@@ -70,4 +70,4 @@ skip_phase1_adjustment no
 # updating the target_calibration initial values above to the same as the
 # calculated values.
 
-target_adjustment_csv_file wark2015lt-tgtoffset.csv
+target_adjustment_csv_file ${configpath}-tgtoffset.csv
