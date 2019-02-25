@@ -1464,7 +1464,6 @@ class AxisAdjustment( Plugin ):
         self.write("\n")
 
     def phase1( self ):
-        self.defineAntennae()
         self.writeHeader("Phase 1: Unconstrained network adjustment\n")
         self.phase=self.NETWORK_ADJUSTMENT
         self.adjustment.calculateSolution()
@@ -1501,6 +1500,7 @@ class AxisAdjustment( Plugin ):
         Replace adjustment calculate solution function with three phase calculation
         '''
         try:
+            self.defineAntennae()
             if not self.options.skipPhase1Adjustment:
                 self.phase1()
             self.phase2()
