@@ -1,0 +1,7 @@
+fromstn,tostn,az_value,az_error,hd_value,hd_error
+WASE,TWSE,0.0,1.0
+WASW,TWSW,0.0,1.0
+WAS3,TWS3,0.0,1.0
+WAN3,TWN3,0.0,1.0
+WARK,WAWH,180.0,1.0,2.0,0.01
+

@@ -1,0 +1,534 @@
+
+Input coordinate file:
+  wark2015lt-crds.csv
+
+Observation files:
+  APS150750.SNX
+  control.csv
+  antenna12.csv
+  antenna30.csv
+  trig_levelling_reduced.csv
+  lv_2015-09-21.csv
+  dummy_az.csv
+Applying station rejection criteria to observations
+Filtering 1693 observations to 1691
+Applying observation reweighting
+Observation summary:
+  5 Azimuth observations
+  18 XYZ coordinate observations
+  739 Horizontal angle observations in 172 rounds
+  1 Horizontal distance observations
+  46 Height difference observations
+  699 Slope distance observations
+  767 Zenith distance observations
+  Using refraction coefficient 0.075
+
+Approximate coordinates calculated for 371 stations
+
+======================================================================
+Phase 1: Unconstrained network adjustment
+
+
+Calculating 1252 parameters
+Iteration 1: max coord change 1.5947m at 90C5
+Iteration 2: max coord change 0.2909m at TWS3
+Iteration 3: max coord change 0.0085m at TWS3
+Iteration 4: max coord change 0.0000m at TWS3
+
+Sum of squared residuals:     862.557195
+Number of parameters:         1252
+Number of observations:       2139
+Degrees of freedom:           887
+Standard error of unit weight 0.9861
+
+Summary of residuals
+
+  Type       NRes   RMS   
+  AZ            4   0.0000
+  GX            8   0.9994
+  HA          257   1.0344
+  HD            1   0.0419
+  LV           46   0.9409
+  SD          328   0.9068
+  ZD          396   1.0302
+
+======================================================================
+Phase 2: Antenna initial parameter estimation
+
+
+Setting up axes for antenna WARK30M
+
+Initiallizing arc A
+ Setting up target 1
+   Target has 14 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00185m at 18A1
+ Setting up target 2
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00126m at 34A2
+ Setting up target 3
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00166m at 18A3
+ Setting up target 4
+   Target has 11 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00179m at 12A4
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0000  0.0001  0.0001
+       2    -0.0001  0.0005  0.0005
+       3     0.0000 -0.0004  0.0004
+       4     0.0001 -0.0002  0.0002
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00205m at 12A4
+ Arc is for azimuth axis
+ Arc uses targets: 1 2 3 4
+ Arc uses orientations: 00 02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34
+
+Initiallizing arc B
+ Setting up target 1
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00119m at 06B1
+ Setting up target 2
+   Target has 10 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00152m at 16B2
+ Setting up target 3
+   Target has 13 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00087m at 24B3
+ Setting up target 4
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00132m at 20B4
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0004  0.0002  0.0004
+       2     0.0003  0.0000  0.0003
+       3    -0.0005 -0.0004  0.0006
+       4    -0.0001  0.0001  0.0002
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00159m at 16B2
+ Arc is for azimuth axis
+ Arc uses targets: 1 2 3 4
+ Arc uses orientations: 00 02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34
+
+Initiallizing arc C
+ Setting up target 1
+   Target has 9 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00147m at 80C1
+ Setting up target 3
+   Target has 9 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00100m at 20C3
+ Setting up target 4
+   Target has 8 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00136m at 80C4
+ Setting up target 5
+   Target has 9 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00183m at 90C5
+ Setting up target 6
+   Target has 6 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00064m at 30C6
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0008 -0.0003  0.0008
+       3    -0.0027 -0.0033  0.0043
+       4    -0.0004  0.0021  0.0021
+       5     0.0047  0.0016  0.0050
+       6    -0.0024 -0.0001  0.0024
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00273m at 90C5
+ Arc is for elevation axis
+ Arc uses targets: 1 3 4 5 6
+ Arc uses orientations: 00 10 20 30 40 50 60 70 80 90
+
+Initiallizing arc D
+ Setting up target 1
+   Target has 9 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00053m at 70D1
+ Setting up target 3
+   Target has 5 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00033m at 20D3
+ Setting up target 4
+   Target has 8 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00047m at 30D4
+ Setting up target 5
+   Target has 9 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00036m at 60D5
+ Setting up target 6
+   Target has 8 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00023m at 50D6
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0012 -0.0001  0.0012
+       3    -0.0013 -0.0021  0.0025
+       4    -0.0011  0.0009  0.0014
+       5     0.0005  0.0013  0.0014
+       6     0.0007 -0.0000  0.0007
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00086m at 80D1
+ Arc is for elevation axis
+ Arc uses targets: 1 3 4 5 6
+ Arc uses orientations: 00 10 20 30 40 50 60 70 80 90
+
+ Merging elevation axis targets
+     Arc C: maximum offset merging targets 0.0000
+     Arc D: maximum offset merging targets 0.0009
+     Elevation arc C: orientation 50.0610 offset 2.5032 m  misalignment 0.0008 degrees
+     Elevation arc D: orientation 140.0463 offset 2.5041 m  misalignment -0.0009 degrees
+
+ Merging azimuth arcs
+     Arc A: maximum offset merging targets 0.0000
+     Arc B: maximum offset merging targets 0.0007
+
+ Solving for all antenna parameters
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00263m at 00B4
+
+Setting up axes for antenna WARK12M
+
+Initiallizing arc W
+ Setting up target 1
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00018m at 04W1
+ Setting up target 3
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00034m at 28W3
+ Setting up target 4
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00041m at 12W4
+ Setting up target 5
+   Target has 11 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00032m at 28W5
+ Setting up target 6
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00029m at 12W6
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0002 -0.0001  0.0002
+       3    -0.0001 -0.0001  0.0001
+       4    -0.0001  0.0001  0.0001
+       5    -0.0002  0.0000  0.0002
+       6     0.0001  0.0001  0.0001
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00052m at 28W4
+ Arc is for azimuth axis
+ Arc uses targets: 1 3 4 5 6
+ Arc uses orientations: 00 02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34
+
+Initiallizing arc X
+ Setting up target 1
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00022m at 22X1
+ Setting up target 3
+   Target has 11 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00029m at 10X3
+ Setting up target 4
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00019m at 14X4
+ Setting up target 5
+   Target has 12 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00024m at 20X5
+ Setting up target 6
+   Target has 11 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00029m at 24X6
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0000 -0.0002  0.0002
+       3    -0.0001  0.0003  0.0003
+       4    -0.0000  0.0000  0.0000
+       5    -0.0000  0.0000  0.0000
+       6     0.0001 -0.0001  0.0002
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00051m at 12X6
+ Arc is for azimuth axis
+ Arc uses targets: 1 3 4 5 6
+ Arc uses orientations: 00 02 04 06 08 10 12 14 16 18 20 22 24 26 28 30 32 34
+
+Initiallizing arc Y
+ Setting up target 1
+   Target has 10 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00027m at 00Y1
+ Setting up target 3
+   Target has 10 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00014m at 70Y3
+ Setting up target 4
+   Target has 9 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00015m at 30Y4
+ Setting up target 5
+   Target has 10 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00015m at 40Y5
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0003  0.0000  0.0003
+       3    -0.0007  0.0001  0.0007
+       4     0.0000  0.0002  0.0002
+       5     0.0003 -0.0002  0.0004
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00064m at 90Y3
+ Arc is for elevation axis
+ Arc uses targets: 1 3 4 5
+ Arc uses orientations: 00 10 20 30 40 50 60 70 80 90
+
+Initiallizing arc Z
+ Setting up target 1
+   Target has 10 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00026m at 40Z1
+ Setting up target 3
+   Target has 10 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00054m at 40Z3
+ Setting up target 4
+   Target has 9 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00034m at 50Z4
+ Setting up target 5
+   Target has 10 observations
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00044m at 50Z5
+ Combining targets axes to arc axis
+     Centre offsets (X,Y,distance)
+       1     0.0012  0.0002  0.0012
+       3    -0.0021  0.0001  0.0021
+       4     0.0001  0.0000  0.0001
+       5     0.0008 -0.0004  0.0009
+     Target axis solution converged after 3 iterations
+     Maximum coordinate residual 0.00137m at 90Z3
+ Arc is for elevation axis
+ Arc uses targets: 1 3 4 5
+ Arc uses orientations: 00 10 20 30 40 50 60 70 80 90
+
+ Merging elevation axis targets
+     Arc Y: maximum offset merging targets 0.0000
+     Arc Z: maximum offset merging targets 0.0015
+     Elevation arc Y: orientation -42.2489 offset -0.0009 m  misalignment 0.0134 degrees
+     Elevation arc Z: orientation 47.8160 offset -0.0009 m  misalignment 0.0170 degrees
+
+ Merging azimuth arcs
+     Arc X: maximum offset merging targets 0.0000
+     Arc W: maximum offset merging targets 0.0002
+
+ Solving for all antenna parameters
+     Target axis solution converged after 4 iterations
+     Maximum coordinate residual 0.00166m at 90Z3
+
+======================================================================
+Phase 3: Final constrained adjustment
+
+
+Calculating 319 parameters
+Iteration 1: max coord change 0.0017m at 00C3
+Iteration 2: max coord change 0.0000m at 00C5
+
+Sum of squared residuals:     1604.450227
+Number of parameters:         319
+Number of observations:       2139
+Degrees of freedom:           1820
+Standard error of unit weight 0.9389
+
+Summary of residuals
+
+  Type       NRes   RMS   
+  AZ            5   0.0010
+  GX            8   1.6681
+  HA          739   0.8642
+  HD            1   0.0118
+  LV           46   1.1052
+  SD          699   1.0492
+  ZD          767   0.8789
+
+Calculated setup heights:
+
+Setup        Height    Error
+
+CON001       0.0000    -    
+
+CON002      -0.0116   0.0014
+
+CON003       0.0054   0.0010
+
+CON004       0.0019   0.0009
+
+CON005       0.0071   0.0006
+
+CON006       0.0060   0.0007
+
+CON007       0.0004   0.0008
+
+CON008       0.0000    -    
+
+CON009      -0.0059   0.0006
+
+CON010       0.0019   0.0006
+
+CON011      -0.0216   0.0009
+
+CON012      -0.0054   0.0010
+
+CON013       0.0005   0.0008
+
+CON014       0.0019   0.0014
+
+CON015      -0.0066   0.0010
+
+CON016       0.0015   0.0015
+
+CON017      -0.0016   0.0010
+
+CON018       1.5842   0.0010
+
+CON019       0.0056   0.0012
+
+CON020       0.0015   0.0011
+
+CON021       0.0011   0.0011
+
+CON022       1.5728   0.0010
+
+CON023       1.6735   0.0011
+
+CON024       0.0051   0.0012
+
+CON025       1.6214   0.0012
+
+CON026       1.6757   0.0015
+
+CON027       0.0000    -    
+
+CON028       1.6776   0.0011
+
+CON029      -0.0049   0.0005
+
+CON030      -0.1012   0.0003
+
+CON037       0.0050   0.0003
+
+CON038       0.0027   0.0003
+
+CON039       0.0011   0.0006
+
+CON040       0.0001   0.0006
+
+CON041       0.0000   0.0002
+
+CON042       0.0046   0.0004
+
+CON043      -0.0002   0.0005
+
+CON044      -0.0022   0.0004
+
+S1           0.0002   0.0003
+
+S2          -0.0055   0.0004
+
+S3          -0.0058   0.0004
+
+S4          -0.0002   0.0003
+
+S5           1.5949   0.0003
+
+S6           1.6085   0.0003
+
+S7           1.6086   0.0003
+
+S8           1.5951   0.0003
+
+T1          -0.0051   0.0004
+
+T2           0.0010   0.0003
+
+T3          -0.0045   0.0003
+
+T4          -0.0067   0.0004
+
+T5           1.6102   0.0004
+
+T6           1.5963   0.0004
+
+T7           1.5968   0.0005
+
+T8           1.6108   0.0005
+
+WAW3         0.0012   0.0006
+
+======================================================================
+Antenna WARK12M report
+
+Antenna invariant reference point
+     X coordinate: -5115324.4740 +/- 0.0029
+     Y coordinate:   477843.2908 +/- 0.0016
+     Z coordinate: -3767192.7500 +/- 0.0023
+
+Antenna azimuth axis deflection from geodetic vertical
+   East deflection:   -6.98 +/-   5.00 seconds of arc
+   North deflection:  20.61 +/-   2.51 seconds of arc
+   (Local geodetic deflection of vertical -5.10 -7.70)
+
+Elevation axis configuration
+    Offset from azimuth:  0.0010 +/- 0.0001 metres
+    Non-orthogonality:   -1.05   +/- 0.10   seconds of arc
+
+Correlation of parameters
+      1.000 -0.369  0.717  0.005  0.003 -0.006 -0.016
+     -0.369  1.000 -0.344 -0.002 -0.010  0.003  0.004
+      0.717 -0.344  1.000 -0.010  0.002 -0.005 -0.006
+      0.005 -0.002 -0.010  1.000  0.051 -0.025 -0.645
+      0.003 -0.010  0.002  0.051  1.000 -0.079 -0.056
+     -0.006  0.003 -0.005 -0.025 -0.079  1.000  0.199
+     -0.016  0.004 -0.006 -0.645 -0.056  0.199  1.000
+
+
+======================================================================
+Antenna WARK30M report
+
+Antenna invariant reference point
+     X coordinate: -5115425.7883 +/- 0.0030
+     Y coordinate:   477880.2559 +/- 0.0017
+     Z coordinate: -3767042.1614 +/- 0.0023
+
+Antenna azimuth axis deflection from geodetic vertical
+   East deflection:   -5.13 +/-   1.24 seconds of arc
+   North deflection: -17.94 +/-   2.04 seconds of arc
+   (Local geodetic deflection of vertical -5.10 -7.70)
+
+Elevation axis configuration
+    Offset from azimuth:  2.5043 +/- 0.0003 metres
+    Non-orthogonality:    0.07   +/- 0.06   seconds of arc
+
+Correlation of parameters
+      1.000 -0.363  0.721  0.005 -0.003 -0.022  0.002
+     -0.363  1.000 -0.326  0.001 -0.051  0.005  0.022
+      0.721 -0.326  1.000 -0.018  0.002 -0.015 -0.002
+      0.005  0.001 -0.018  1.000  0.008 -0.140  0.045
+     -0.003 -0.051  0.002  0.008  1.000 -0.013 -0.421
+     -0.022  0.005 -0.015 -0.140 -0.013  1.000 -0.075
+      0.002  0.022 -0.002  0.045 -0.421 -0.075  1.000
+

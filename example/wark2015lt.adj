@@ -1,0 +1,188 @@
+# ========================================================
+# Standard adjustment parameters
+
+use_plugin setup_height_plugin
+
+# Coordinate input file (not required if can calculate all stations)
+
+coordinate_file wark2015lt-crds.csv
+
+# Data files.  Can be SNX, msr (dynanet format), csv. By default CSV
+# expects columns fromstn,fromhgt,tostn,hohgt,date,obstype,obsset,value,error.
+# obsset is an id for rounds of angles used to associate observations into the same
+# round  Observations with the same id must be consecutive rows in the file. The date
+# instrument and target height, and obsset values are optional
+
+data_file APS150750.SNX
+data_file control.csv attributes=isetupid+tsetupid+fbsource
+data_file antenna12.csv attributes=fbsource+isetupid+tsetupid
+data_file antenna30.csv attributes=fbsource+isetupid+tsetupid
+
+data_file trig_levelling_reduced.csv
+data_file lv_2015-09-21.csv attributes=isetupid+tsetupid
+
+data_file dummy_az.csv
+
+# Optional output files
+
+listing_file output/${configname}.lst
+residual_csv_file output/${configname}-residuals.csv
+output_coordinate_file output/${configname}.csv xyz ellipses offsets
+stats_json_file output/${configname}-stats.json
+
+#=============================================================
+# Adjustment model set up 
+
+# Apply a scale factor to the supplied weights for observation type
+# reweight_observation_type type factor
+
+reweight_observation_type GX 2.6
+reweight_observation_type HA 3.5
+reweight_observation_type LV 5.6
+reweight_observation_type SD 1.9
+reweight_observation_type ZD 2.6
+
+# Definition of a local geoid model - defined by a geoid height and 
+# xi,eta.  Also optionally a range beyond which it is ignored
+# (provided to avoid applying to remote GNSS reference stations)
+
+local_geoid WARK 36.047 -7.7 -5.1 20000
+
+# Refraction correction (applied only to zenith distance obs)
+
+refraction_coefficient 0.075
+
+
+# ========================================================
+# Station constraint options
+#
+# Stations can be fixed, as well as accepted or rected
+# fix code code ...
+# accept code code ...
+# reject code code ...
+
+reject EVRA
+
+# Ignore missing stations in the observation files..
+
+# ignore_missing_stations yes
+
+# Calculate missing stations
+
+#calculate_missing_stations no
+
+# Managing unobserved or imprecise setup heights
+# Observation attributes defining the instrument and target setups
+
+calculate_setup_heights yes
+inst_trgt_setup_attributes  isetupid tsetupid
+valid_setup_regex (CON\d+|S\d|T\d|WAW3)
+
+fix_setup_height CON001 0.0
+fix_setup_height CON008 0.0
+fix_setup_height CON027 0.0
+
+# Suspect error in height of WAW3 in later levelling survey (lv_2015-09-21)
+
+#====================================================================
+# Adjustment configuration
+
+convergence_tolerance 0.0001
+max_iterations 10
+
+# Adjust in terms of ENU components rather than XYZ components - 
+# ignored for axis adjustments.
+#
+# adjust_enu yes
+
+#=====================================================================
+# Extra output options
+
+# Verbose echoes the listing file to the screen
+verbose yes
+
+# Debug options write extra information to the listing file
+debug_observation_equations False
+debug_float_stations False
+debug_station_offsets False
+debug_calculate_missing_stations False
+
+#=====================================================================
+# Calculate missing stations
+
+use_plugin station_locator_plugin
+
+calculate_missing_stations yes
+
+# Add additional observations purely for station location
+# (eg dummy observations)
+#
+# station_locator_data_file filename
+
+# Output debug information for calculating missing stations
+
+# debug_calculate_missing_stations False
+
+
+#=====================================================================
+# Parameters specific to axis adjustment
+
+# Regular expression defining target.  Must have match groups
+# named arc, angle, target. (May need to extend to support multiple 
+# telescopes?)
+
+# Note: assume that targets used for azimuth arcs (vertical rotation axis) are
+# not the same as targets used for elevation arcs (horizontal rotation axis) even
+# if they have the same target name
+
+axis_target_re (?P<angle>\d\d)(?P<arc>[A-Z])(?P<target>\d)
+
+# Mapping from arc codes to antenna
+
+antenna_arcs WARK12M W X Y Z
+antenna_arcs WARK30M A B C D
+
+# Target prism calibration corrections
+#  target [calculate]  value
+
+#target_calibration 1 calculate
+#target_calibration 2 calculate
+#target_calibration 3 calculate
+#target_calibration 4 calculate
+#target_calibration 5 calculate
+#target_calibration 6 calculate
+
+# If supplying good input coordinates, then can skip phase1 initial 
+# unconstrained adjustment.
+
+skip_phase1_adjustment no
+
+#======================================================================
+# SINEX output file info
+#
+# Reference station information for output SINEX file.  Identifies the id
+# code, monument and descripton of the stations/antenna IVP that will be 
+# included in the final SINEX files.  
+
+sinex_output_file output/WARK2015LT.SNX
+
+sinex_site_id WARK WARK  A 50243M001 WARKWORTH GNSS CORS
+sinex_site_id WARK12M 7377  A 50243S001 WARKWORTH AXIS IVP
+sinex_site_id WARK30M 7391  A 50243S002 WARKWORTH AXIS IVP
+
+# Sinex file header info.  Can include agency, description,
+# contact, input, output, sortware, hardware, comment
+
+sinex_header_info agency LNZ
+sinex_header_info description Warkworth 2015 local tie survey
+sinex_header_info output WARK GNSS reference coordinate and antennae IVPs
+sinex_header_info contact crm_geodetic@linz.govt.nz
+
+#======================================================================
+# Other outputs
+
+# target_adjustment_csv_file is a file of offsets of the target mark
+# coordinates in the constrained adjustment relative to the 
+# unconstrained adjustment
+
+target_adjustment_csv_file output/${configname}-tgtoffset.csv
