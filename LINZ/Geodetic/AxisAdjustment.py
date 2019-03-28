@@ -1371,6 +1371,7 @@ class AxisAdjustment( Plugin ):
         if self.axesDefined:
             return
         tgtre=self.options.axisTargetRe
+        matchcode=tgtre.match if tgtre is not None else lambda c: None
         # Create lookup from arc name to antenna name
         antennaeArcs=self.options.antennaeArcs
         arcAntenna={}
@@ -1382,7 +1383,7 @@ class AxisAdjustment( Plugin ):
 
         targets=set()
         for code in self.adjustment.usedStations():
-            m=tgtre.match(code)
+            m=matchcode(code)
             if m is not None:
                 s=self.stations().get(code)
                 arcName=m.group('arc')
@@ -1473,11 +1474,7 @@ class AxisAdjustment( Plugin ):
     def phase2( self ):
         self.writeHeader("Phase 2: Antenna initial parameter estimation\n")
         self.phase=self.ANTENNA_ESTIMATION
-        if len(self.antennae) > 0:
-            self.estimateAntennaeParameters()
-        else:
-            self.write("*** No antennae defined in adjustment\n")
-            self.write("    Check axis_target_re adjustment parameter\n")
+        self.estimateAntennaeParameters()
             
     def phase3( self ):
         self.saveUnconstrainedCoords()
@@ -1503,8 +1500,12 @@ class AxisAdjustment( Plugin ):
             self.defineAntennae()
             if not self.options.skipPhase1Adjustment:
                 self.phase1()
-            self.phase2()
-            self.phase3()
+            if len(self.antennae) > 0:
+                self.phase2()
+                self.phase3()
+            else:
+                self.write("*** No antennae defined in adjustment\n")
+                self.write("    Check axis_target_re adjustment parameter\n")
         except Exception as ex:
             self.writeHeader("Axis adjustment failed")
             self.write(ex.message)
