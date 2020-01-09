@@ -2,7 +2,10 @@
 build
 dist
 linz_pyaxis.egg-info
-debian/python-linz*
+.pybuild
+.vscode
+debian/.debhelper
+debian/python3-linz*
 debian/debhelper.log
 debian/substvars
 debian/files
