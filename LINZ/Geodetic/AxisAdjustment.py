@@ -1631,7 +1631,7 @@ class AxisAdjustment(Plugin):
                 self.write("    Check axis_target_re adjustment parameter\n")
         except Exception as ex:
             self.writeHeader("Axis adjustment failed")
-            self.write(ex.message)
+            self.write(str(ex))
             raise
             sys.exit()
 
